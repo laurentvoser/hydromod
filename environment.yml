@@ -1,0 +1,15 @@
+name: hydromod
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - matplotlib
+  - seaborn
+  - pygeohydro
+  - jupyterlab
+  - pip
+  - pip:
+      - pyet

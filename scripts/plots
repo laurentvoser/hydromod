@@ -1,0 +1,74 @@
+import calendar
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
+df = pd.read_csv(
+    r"data\processed\camels_2486_combined.csv",
+    parse_dates=["date"],
+    index_col="date",
+)
+
+COL_Q = "discharge_spec(mm/d)"
+COL_P = "precipitation(mm/d)"
+COL_PET = "pet_sim(mm/d)"
+COL_QVOL = "discharge_vol(m3/s)"
+
+df["water_year"] = df.index.year.where(df.index.month < 10, df.index.year + 1)
+
+# ============================================================
+# Plot 1: Q & PET on left axis; P on right axis, inverted ("hanging")
+# ============================================================
+YEAR = 2015
+
+wy_data = df[df["water_year"] == YEAR]
+
+fig, ax = plt.subplots(figsize=(11, 5.5))
+
+ax.bar(wy_data.index, wy_data[COL_Q], color="tab:blue", width=1, alpha=0.5, label="Q (mm/d)")
+ax.bar(wy_data.index, wy_data[COL_PET], color="tab:orange", width=1, alpha=0.5, label="PET (mm/d)")
+ax.set_ylabel("Q, PET (mm/d)")
+
+ax_p = ax.twinx()
+ax_p.bar(wy_data.index, wy_data[COL_P], color="tab:cyan", width=1, alpha=0.5, label="P (mm/d)")
+ax_p.set_ylabel("P (mm/d)")
+ax_p.invert_yaxis()
+
+ax.xaxis.set_major_locator(mdates.MonthLocator())
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+
+lines1, labels1 = ax.get_legend_handles_labels()
+lines2, labels2 = ax_p.get_legend_handles_labels()
+ax.legend(lines1 + lines2, labels1 + labels2, loc="center left", fontsize=9)
+
+ax.set_title(f"Hydrological year {YEAR-1}/{YEAR} \u2013 catchment La Veveyse (2486)")
+fig.tight_layout()
+fig.savefig(r"plots\hydro_year_2486.png", dpi=150)
+
+# ============================================================
+# Plot 2: regime plot, two periods, no markers
+# ============================================================
+old = df[(df.index.year >= 1981) & (df.index.year <= 2000)]
+new = df[(df.index.year >= 2001) & (df.index.year <= 2020)]
+
+old_mean = old.groupby(old.index.month)[COL_QVOL].mean()
+new_mean = new.groupby(new.index.month)[COL_QVOL].mean()
+
+months = range(1, 13)
+month_labels = [calendar.month_abbr[m] for m in months]
+
+fig2, ax2 = plt.subplots(figsize=(9, 5))
+
+ax2.plot(months, old_mean, color="tab:blue", label="1981\u20132000")
+ax2.plot(months, new_mean, color="tab:red", label="2001\u20132020")
+
+ax2.set_xticks(list(months))
+ax2.set_xticklabels(month_labels)
+ax2.set_xlabel("Month")
+ax2.set_ylabel("Mean monthly discharge (mm/d)")
+ax2.set_title("Discharge regime: catchment La Veveyse (2486), two 20-year periods")
+ax2.legend()
+fig2.tight_layout()
+fig2.savefig(r"plots\regime_2486.png", dpi=150)
+
+plt.show()

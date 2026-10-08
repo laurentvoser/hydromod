@@ -1,0 +1,22 @@
+@"
+# Data (keep raw/processed data out of git)
+data/raw/
+data/processed/
+data/interim/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Environments
+.conda/
+.venv/
+
+# Generated output
+plots/
+reports/figures/
+
+# Editor/system
+.vscode/
+"@ | Set-Content -Encoding utf8 .gitignore
